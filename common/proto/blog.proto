@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/dvlpr-shivendra/blog-services/common/proto";
+option go_package = "blog-services/common/proto";
 
 package proto;
 
