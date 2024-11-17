@@ -21,9 +21,22 @@ func (h *handler) registerRoutes(mux *http.ServeMux) {
 }
 
 func (h *handler) handleCreatePost(w http.ResponseWriter, r *http.Request) {
-	h.gateway.CreatePost(r.Context(), &proto.CreatePostRequest{
-		Title: "Test Post",
-		Body:  "Test Body",
+
+	var body CreatePostRequest
+	
+	if err := common.ReadJSON(r, &body); err != nil {
+		common.WriteJSON(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	post, err := h.gateway.CreatePost(r.Context(), &proto.CreatePostRequest{
+		Title: body.Title,
+		Body:  body.Body,
 	})
-	common.WriteJSON(w, http.StatusOK, "{}")
+
+	if err != nil {
+		common.WriteJSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	common.WriteJSON(w, http.StatusOK, post)
 }
