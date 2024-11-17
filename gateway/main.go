@@ -2,17 +2,46 @@ package main
 
 import (
 	"blog-services/common"
+	"blog-services/common/discovery"
+	"blog-services/common/discovery/consul"
 	"blog-services/gateway/gateway"
+	"context"
 	"log"
 	"net/http"
+	"time"
 )
 
-var httpAddr = common.Env("HTTP_ADDR", "localhost:8080")
+var (
+	serviceName = "gateway"
+	httpAddr    = common.Env("HTTP_ADDR", ":8080")
+	consulAddr  = common.Env("CONSUL_ADDR", "localhost:8500")
+)
 
 func main() {
+	registry, err := consul.NewRegistry(consulAddr, serviceName)
+	if err != nil {
+		panic(err)
+	}
+
+	ctx := context.Background()
+	instanceID := discovery.GenerateInstanceID(serviceName)
+	if err := registry.Register(ctx, instanceID, serviceName, httpAddr); err != nil {
+		panic(err)
+	}
+
+	go func() {
+		for {
+			if err := registry.HealthCheck(instanceID, serviceName); err != nil {
+				log.Fatal("failed to health check")
+			}
+			time.Sleep(time.Second * 1)
+		}
+	}()
+
+	defer registry.Deregister(ctx, instanceID, serviceName)
 	mux := http.NewServeMux()
 
-	postsGateway := gateway.NewGRPCGateway()
+	postsGateway := gateway.NewGRPCGateway(registry)
 
 	handler := NewHandler(postsGateway)
 	handler.registerRoutes(mux)

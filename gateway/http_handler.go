@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"blog-services/common"
+	"blog-services/common/proto"
 	"blog-services/gateway/gateway"
 )
 
@@ -20,5 +21,9 @@ func (h *handler) registerRoutes(mux *http.ServeMux) {
 }
 
 func (h *handler) handleCreatePost(w http.ResponseWriter, r *http.Request) {
+	h.gateway.CreatePost(r.Context(), &proto.CreatePostRequest{
+		Title: "Test Post",
+		Body:  "Test Body",
+	})
 	common.WriteJSON(w, http.StatusOK, "{}")
 }
