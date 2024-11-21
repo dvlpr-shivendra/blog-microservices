@@ -5,18 +5,28 @@ import (
 	"blog-services/common/discovery"
 	"blog-services/common/discovery/consul"
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
 	"google.golang.org/grpc"
+
+	"database/sql"
+
+	_ "github.com/lib/pq"
 )
 
 var (
 	serviceName = "orders"
 	grpcAddr    = common.Env("GRPC_ADDR", "localhost:2000")
 	consulAddr  = common.Env("CONSUL_ADDR", "localhost:8500")
+	dbUser      = common.Env("DB_USER", "postgres")
+	dbName      = common.Env("DB_NAME", "postgres")
+	dbPassword  = common.Env("DB_PASSWORD", "postgres")
+	dbHost      = common.Env("DB_HOST", "localhost")
+	dbPort      = common.Env("DB_PORT", "5432")
 )
 
 func main() {
@@ -55,7 +65,22 @@ func main() {
 
 	defer l.Close()
 
-	store := NewStore()
+	connectionString := fmt.Sprintf(
+		"user=%s dbname=%s password=%s host=%s port=%s sslmode=disable",
+		dbUser,
+		dbName,
+		dbPassword,
+		dbHost,
+		dbPort,
+	)
+
+	db, err := sql.Open("postgres", connectionString)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	store := NewStore(db)
 	svc := NewService(store)
 
 	NewGRPCHandler(grpcServer, svc)
