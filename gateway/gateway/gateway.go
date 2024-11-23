@@ -8,5 +8,6 @@ import (
 
 type PostsGateway interface {
 	CreatePost(context.Context, *proto.CreatePostRequest) (*proto.Post, error)
+	GetPosts(context.Context) ([]*proto.Post, error)
 	GetPost(ctx context.Context, id int64) (*proto.Post, error)
 }

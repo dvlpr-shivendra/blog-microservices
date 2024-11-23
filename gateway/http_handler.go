@@ -17,7 +17,17 @@ func NewHandler(gateway gateway.PostsGateway) *handler {
 }
 
 func (h *handler) registerRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/posts", h.handleGetPosts)
 	mux.HandleFunc("POST /api/posts", h.handleCreatePost)
+}
+
+func (h *handler) handleGetPosts(w http.ResponseWriter, r *http.Request) {
+	posts, err := h.gateway.GetPosts(r.Context())
+	if err != nil {
+		common.WriteJSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	common.WriteJSON(w, http.StatusOK, posts)
 }
 
 func (h *handler) handleCreatePost(w http.ResponseWriter, r *http.Request) {

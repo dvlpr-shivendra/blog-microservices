@@ -58,3 +58,28 @@ func (s *store) Get(ctx context.Context, id int) (*proto.Post, error) {
 	}
 	return post, nil
 }
+
+func (s *store) GetList(ctx context.Context) ([]*proto.Post, error) {
+	var posts []*proto.Post
+	rows, err := s.db.QueryContext(ctx, "SELECT id, title, body, author_id, published, created_at, updated_at FROM posts")
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		post := &proto.Post{}
+		err := rows.Scan(
+			&post.Id,
+			&post.Title,
+			&post.Body,
+			&post.AuthorId,
+			&post.Published,
+			&post.CreatedAt,
+			&post.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		posts = append(posts, post)
+	}
+	return posts, nil
+}

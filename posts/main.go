@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	serviceName = "orders"
+	serviceName = "posts"
 	grpcAddr    = common.Env("GRPC_ADDR", "localhost:2000")
 	consulAddr  = common.Env("CONSUL_ADDR", "localhost:8500")
 	dbUser      = common.Env("DB_USER", "postgres")

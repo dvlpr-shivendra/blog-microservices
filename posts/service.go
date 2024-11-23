@@ -20,3 +20,8 @@ func (s *service) GetPost(ctx context.Context, request *proto.GetPostRequest) (*
 func (s *service) CreatePost(ctx context.Context, req *proto.CreatePostRequest) (*proto.Post, error) {
 	return s.store.Create(ctx, req)
 }
+
+
+func (s *service) GetPosts(ctx context.Context) ([]*proto.Post, error) {
+	return s.store.GetList(ctx)
+}

@@ -17,8 +17,15 @@ message Post {
 service PostService {
   rpc CreatePost(CreatePostRequest) returns (Post);
   rpc GetPost(GetPostRequest) returns (Post);
+  rpc GetPosts(Empty) returns (GetPostsResponse);
   rpc UpdatePost(Post) returns (Post);
 }
+
+message GetPostsResponse {
+  repeated Post Posts = 1;
+}
+
+message Empty {}
 
 message CreatePostRequest {
   string Title = 1;

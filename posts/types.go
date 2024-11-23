@@ -19,9 +19,11 @@ type Post struct {
 type PostsService interface {
 	CreatePost(context.Context, *proto.CreatePostRequest) (*proto.Post, error)
 	GetPost(context.Context, *proto.GetPostRequest) (*proto.Post, error)
+	GetPosts(context.Context) ([]*proto.Post, error)
 }
 
 type PostsStore interface {
 	Create(context.Context, *proto.CreatePostRequest) (*proto.Post, error)
 	Get(ctx context.Context, id int) (*proto.Post, error)
+	GetList(ctx context.Context) ([]*proto.Post, error)
 }
