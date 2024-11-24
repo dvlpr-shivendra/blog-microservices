@@ -7,11 +7,32 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
+
+func clientUnaryInterceptor(
+	ctx context.Context,
+	method string,
+	req interface{},
+	reply interface{},
+	cc *grpc.ClientConn,
+	invoker grpc.UnaryInvoker,
+	opts ...grpc.CallOption,
+) error {
+	md, ok := metadata.FromOutgoingContext(ctx)
+	if !ok {
+		md = metadata.New(nil)
+	}
+
+	md.Append("authorization", "Bearer hardcoded")
+
+	newCtx := metadata.NewOutgoingContext(ctx, md)
+
+	return invoker(newCtx, method, req, reply, cc, opts...)
+}
 
 func ServiceConnection(ctx context.Context, serviceName string, registry Registry) (*grpc.ClientConn, error) {
 	addressList, err := registry.Discover(ctx, serviceName)
-
 	if err != nil {
 		return nil, err
 	}
@@ -20,5 +41,16 @@ func ServiceConnection(ctx context.Context, serviceName string, registry Registr
 		return nil, fmt.Errorf("no available instances found for service: %s", serviceName)
 	}
 
-	return grpc.NewClient(addressList[rand.Intn(len(addressList))], grpc.WithTransportCredentials(insecure.NewCredentials()))
+	address := addressList[rand.Intn(len(addressList))]
+
+	conn, err := grpc.NewClient(
+		address,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(clientUnaryInterceptor),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to service %s: %v", serviceName, err)
+	}
+
+	return conn, nil
 }

@@ -16,6 +16,10 @@ import (
 	"database/sql"
 
 	_ "github.com/lib/pq"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
 )
 
 var (
@@ -28,6 +32,46 @@ var (
 	dbHost      = common.Env("DB_HOST", "localhost")
 	dbPort      = common.Env("DB_PORT", "5432")
 )
+
+func unaryInterceptor(
+	ctx context.Context,
+	req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (interface{}, error) {
+	// Extract metadata from the context
+	md, ok := metadata.FromIncomingContext(ctx)
+
+	if !ok {
+		log.Println("❌ No metadata found in context")
+		return nil, status.Errorf(codes.Unauthenticated, "Unauthenticated")
+	}
+
+	token, ok := md["authorization"]
+
+	if !ok || len(token) < 1 {
+		log.Println("❌ No token found in metadata")
+		return nil, status.Errorf(codes.Unauthenticated, "invalid authorization token")
+	}
+
+	isValid := validateToken(token[0])
+
+	if !isValid {
+		log.Printf("❌ Invalid token received: %s", token)
+		return nil, status.Errorf(codes.Unauthenticated, "invalid authorization token")
+	}
+
+	return handler(ctx, req)
+}
+
+func validateToken(token string) bool {
+	// Add your token validation logic here
+	// For example:
+	// - Validate JWT token
+	// - Check against your auth service
+	// - Verify token format and expiration
+	return token != ""
+}
 
 func main() {
 	registry, err := consul.NewRegistry(consulAddr, serviceName)
@@ -55,7 +99,9 @@ func main() {
 
 	defer registry.Deregister(ctx, instanceID, serviceName)
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(unaryInterceptor),
+	)
 
 	l, err := net.Listen("tcp", grpcAddr)
 
