@@ -43,3 +43,37 @@ message UpdatePostRequest {
 message GetPostRequest {
   int64 PostId = 1;
 }
+
+message Comment {
+  int64 Id = 1;
+  string Body = 3;
+  int64 UserId = 4;
+  bool Published = 5;
+  string CreatedAt = 6;
+  string UpdatedAt = 7;
+}
+
+service CommentService {
+  rpc CreateComment(CreateCommentRequest) returns (Comment);
+  rpc GetComments(GetCommentsRequest) returns (GetCommentsResponse);
+  rpc UpdateComment(UpdateCommentRequest) returns (Comment);
+}
+
+message CreateCommentRequest {
+  string Body = 2;
+}
+
+message UpdateCommentRequest {
+  int64 Id = 1;
+  string Title = 2;
+  string Body = 3;
+  bool Published = 4;
+}
+
+message GetCommentsRequest {
+  int64 PostId = 1;
+}
+
+message GetCommentsResponse {
+  repeated Comment Comments = 1;
+}
