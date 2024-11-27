@@ -24,10 +24,6 @@ func (h *grpcHandler) GetPost(ctx context.Context, req *proto.GetPostRequest) (*
 	return h.service.GetPost(ctx, req)
 }
 
-func (h *grpcHandler) CreatePost(ctx context.Context, req *proto.CreatePostRequest) (*proto.Post, error) {
-	return h.service.CreatePost(ctx, req)
-}
-
 func (h *grpcHandler) GetPosts(ctx context.Context, req *proto.Empty) (*proto.GetPostsResponse, error) {
 	posts, err := h.service.GetPosts(ctx)
 
@@ -36,4 +32,12 @@ func (h *grpcHandler) GetPosts(ctx context.Context, req *proto.Empty) (*proto.Ge
 	}
 
 	return &proto.GetPostsResponse{Posts: posts}, nil
+}
+
+func (h *grpcHandler) CreatePost(ctx context.Context, req *proto.CreatePostRequest) (*proto.Post, error) {
+	return h.service.CreatePost(ctx, req)
+}
+
+func (h *grpcHandler) UpdatePost(ctx context.Context, req *proto.UpdatePostRequest) (*proto.Post, error) {
+	return h.service.UpdatePost(ctx, req)
 }

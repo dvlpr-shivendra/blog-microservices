@@ -21,6 +21,9 @@ func (s *service) CreatePost(ctx context.Context, req *proto.CreatePostRequest) 
 	return s.store.Create(ctx, req)
 }
 
+func (s *service) UpdatePost(ctx context.Context, req *proto.UpdatePostRequest) (*proto.Post, error) {
+	return s.store.Update(ctx, req)
+}
 
 func (s *service) GetPosts(ctx context.Context) ([]*proto.Post, error) {
 	return s.store.GetList(ctx)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"blog-services/common"
 	"blog-services/common/proto"
@@ -19,6 +20,7 @@ func NewHandler(gateway gateway.PostsGateway) *handler {
 func (h *handler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/posts", h.handleGetPosts)
 	mux.HandleFunc("POST /api/posts", h.handleCreatePost)
+	mux.HandleFunc("PUT /api/posts/{id}", h.handleUpdatePost)
 }
 
 func (h *handler) handleGetPosts(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +35,7 @@ func (h *handler) handleGetPosts(w http.ResponseWriter, r *http.Request) {
 func (h *handler) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 
 	var body CreatePostRequest
-	
+
 	if err := common.ReadJSON(r, &body); err != nil {
 		common.WriteJSON(w, http.StatusBadRequest, err.Error())
 		return
@@ -48,5 +50,36 @@ func (h *handler) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 		common.WriteJSON(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	common.WriteJSON(w, http.StatusOK, post)
+}
+
+func (h *handler) handleUpdatePost(w http.ResponseWriter, r *http.Request) {
+
+	var body UpdatePostRequest
+
+	if err := common.ReadJSON(r, &body); err != nil {
+		common.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+
+	if err != nil {
+		common.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	post, err := h.gateway.UpdatePost(r.Context(), &proto.UpdatePostRequest{
+		Id:        id,
+		Title:     body.Title,
+		Body:      body.Body,
+		Published: body.Published,
+	})
+
+	if err != nil {
+		common.WriteError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	common.WriteJSON(w, http.StatusOK, post)
 }

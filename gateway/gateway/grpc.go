@@ -25,10 +25,7 @@ func (g *gateway) CreatePost(ctx context.Context, req *proto.CreatePostRequest) 
 
 	c := proto.NewPostServiceClient(conn)
 
-	return c.CreatePost(ctx, &proto.CreatePostRequest{
-		Title: req.Title,
-		Body:  req.Body,
-	})
+	return c.CreatePost(ctx, req)
 }
 
 func (g *gateway) GetPosts(ctx context.Context) ([]*proto.Post, error) {
@@ -57,4 +54,17 @@ func (g *gateway) GetPosts(ctx context.Context) ([]*proto.Post, error) {
 
 func (g *gateway) GetPost(ctx context.Context, id int64) (*proto.Post, error) {
 	return nil, nil
+}
+
+func (g *gateway) UpdatePost(ctx context.Context, req *proto.UpdatePostRequest) (*proto.Post, error) {
+	conn, err := discovery.ServiceConnection(context.Background(), "posts", g.registry)
+
+	if err != nil {
+		log.Printf("Failed to dial server: %v", err)
+		return nil, err
+	}
+
+	c := proto.NewPostServiceClient(conn)
+
+	return c.UpdatePost(ctx, req)
 }

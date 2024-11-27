@@ -18,7 +18,7 @@ service PostService {
   rpc CreatePost(CreatePostRequest) returns (Post);
   rpc GetPost(GetPostRequest) returns (Post);
   rpc GetPosts(Empty) returns (GetPostsResponse);
-  rpc UpdatePost(Post) returns (Post);
+  rpc UpdatePost(UpdatePostRequest) returns (Post);
 }
 
 message GetPostsResponse {
@@ -30,6 +30,14 @@ message Empty {}
 message CreatePostRequest {
   string Title = 1;
   string Body = 2;
+  string Published = 3;
+}
+
+message UpdatePostRequest {
+  int64 Id = 1;
+  string Title = 2;
+  string Body = 3;
+  bool Published = 4;
 }
 
 message GetPostRequest {
