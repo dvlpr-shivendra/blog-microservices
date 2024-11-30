@@ -68,3 +68,16 @@ func (g *gateway) UpdatePost(ctx context.Context, req *proto.UpdatePostRequest) 
 
 	return c.UpdatePost(ctx, req)
 }
+
+func (g *gateway) GetComments(ctx context.Context, postId int64) (*proto.GetCommentsResponse, error) {
+	conn, err := discovery.ServiceConnection(context.Background(), "comments", g.registry)
+
+	if err != nil {
+		log.Printf("Failed to dial server: %v", err)
+		return nil, err
+	}
+
+	c := proto.NewCommentServiceClient(conn)
+
+	return c.GetComments(ctx, &proto.GetCommentsRequest{PostId: postId})
+}
