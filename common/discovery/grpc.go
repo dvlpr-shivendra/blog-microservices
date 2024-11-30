@@ -43,7 +43,10 @@ func ServiceConnection(ctx context.Context, serviceName string, registry Registr
 
 	address := addressList[rand.Intn(len(addressList))]
 
-	conn, err := grpc.NewClient(
+	// TODO: grpc.NewClient was taking around 10s to process a request,
+	// grpc.Dial is working as expected, so for now using grpc.Dial
+	// Will revisit it in future
+	conn, err := grpc.Dial(
 		address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(clientUnaryInterceptor),
