@@ -26,10 +26,10 @@ var (
 	grpcAddr    = common.Env("GRPC_ADDR", "localhost:2001")
 	consulAddr  = common.Env("CONSUL_ADDR", "localhost:8500")
 	dbUser      = common.Env("DB_USER", "postgres")
-	dbName      = common.Env("DB_NAME", "postgres")
+	dbName      = common.Env("DB_NAME", "blog_comments_db")
 	dbPassword  = common.Env("DB_PASSWORD", "postgres")
 	dbHost      = common.Env("DB_HOST", "localhost")
-	dbPort      = common.Env("DB_PORT", "5433")
+	dbPort      = common.Env("DB_PORT", "5432")
 )
 
 func unaryInterceptor(
