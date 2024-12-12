@@ -23,6 +23,8 @@ func (h *handler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /api/posts/{id}", h.handleUpdatePost)
 
 	mux.HandleFunc("GET /api/comments/{postId}", h.handleGetComments)
+
+	mux.HandleFunc("POST /api/posts/{postId}/likes", h.handleCreateLike)
 }
 
 func (h *handler) handleGetPosts(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +90,27 @@ func (h *handler) handleUpdatePost(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) handleGetComments(w http.ResponseWriter, r *http.Request) {
 	postId, err := strconv.ParseInt(r.PathValue("postId"), 10, 64)
+
+	if err != nil {
+		common.WriteJSON(w, http.StatusInternalServerError, "Something went wrong")
+	}
+
 	comments, err := h.gateway.GetComments(r.Context(), postId)
+	if err != nil {
+		common.WriteJSON(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	common.WriteJSON(w, http.StatusOK, comments)
+}
+
+func (h *handler) handleCreateLike(w http.ResponseWriter, r *http.Request) {
+	postId, err := strconv.ParseInt(r.PathValue("postId"), 10, 64)
+
+	if err != nil {
+		common.WriteJSON(w, http.StatusInternalServerError, "Something went wrong")
+	}
+
+	comments, err := h.gateway.CreateLike(r.Context(), postId)
 	if err != nil {
 		common.WriteJSON(w, http.StatusInternalServerError, err.Error())
 		return

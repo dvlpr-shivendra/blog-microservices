@@ -81,3 +81,16 @@ func (g *gateway) GetComments(ctx context.Context, postId int64) (*proto.GetComm
 
 	return c.GetComments(ctx, &proto.GetCommentsRequest{PostId: postId})
 }
+
+func (g *gateway) CreateLike(ctx context.Context, postId int64) (*proto.CreateLikeResponse, error) {
+	conn, err := discovery.ServiceConnection(context.Background(), "posts", g.registry)
+
+	if err != nil {
+		log.Printf("Failed to dial server: %v", err)
+		return nil, err
+	}
+
+	c := proto.NewLikeServiceClient(conn)
+
+	return c.CreateLike(ctx, &proto.CreateLikeRequest{PostId: postId})
+}

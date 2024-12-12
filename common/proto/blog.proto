@@ -75,3 +75,20 @@ message GetCommentsRequest {
 message GetCommentsResponse {
   repeated Comment Comments = 1;
 }
+
+message Like {
+  int64 PostId = 1;
+  int64 UserId = 2;
+}
+
+message CreateLikeRequest {
+  int64 PostId = 1;
+}
+
+message CreateLikeResponse {
+  bool success = 1;
+}
+
+service LikeService {
+  rpc CreateLike(CreateLikeRequest) returns (CreateLikeResponse);
+}
