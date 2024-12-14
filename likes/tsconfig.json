@@ -12,7 +12,10 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "paths": {
-      "*": ["node_modules/*", "src/types/*"]
+      "*": [
+        "node_modules/*",
+        "/"
+      ]
     }
   },
   "include": [
@@ -22,4 +25,4 @@
     "node_modules",
     "dist"
   ]
-} 
+}
