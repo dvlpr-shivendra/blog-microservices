@@ -83,7 +83,7 @@ func (g *gateway) GetComments(ctx context.Context, postId int64) (*proto.GetComm
 }
 
 func (g *gateway) CreateLike(ctx context.Context, postId int64) (*proto.CreateLikeResponse, error) {
-	conn, err := discovery.ServiceConnection(context.Background(), "posts", g.registry)
+	conn, err := discovery.ServiceConnection(context.Background(), "likes", g.registry)
 
 	if err != nil {
 		log.Printf("Failed to dial server: %v", err)
