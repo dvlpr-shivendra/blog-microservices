@@ -2,6 +2,11 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import * as path from 'path';
 
+import 'dotenv/config'
+
+import { ConsulRegistry as Registry } from './discovery/consul';
+import { env } from './helpers/app';
+
 // Path to the .proto file in the sibling directory 'common'
 const PROTO_PATH = path.resolve(__dirname, '../common/proto/blog.proto');
 
@@ -41,5 +46,9 @@ server.addService(LikeService.service, { CreateLike: createLike });
 const PORT = 50051;
 server.bindAsync(`0.0.0.0:${PORT}`, grpc.ServerCredentials.createInsecure(), () => {
   console.log(`gRPC server is running on http://0.0.0.0:${PORT}`);
-  server.start();
+  const registry = new Registry(env('CONSUL_ADDRESS', 'localhost:8500'), 'likes');
+  registry.register();
+  setInterval(() => {
+    registry.healthCheck();
+  }, 10000);
 });
