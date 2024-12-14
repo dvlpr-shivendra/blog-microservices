@@ -1,54 +1,98 @@
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import * as path from 'path';
+import { ConsulRegistry } from './discovery/consul';
+import { env } from './helpers/app';
 
 import 'dotenv/config'
 
-import { ConsulRegistry as Registry } from './discovery/consul';
-import { env } from './helpers/app';
-
-// Path to the .proto file in the sibling directory 'common'
+// Path to the proto file
 const PROTO_PATH = path.resolve(__dirname, '../common/proto/blog.proto');
 
-// Load the protobuf definition
+// Load protobuf
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
-  keepCase: true,
-  longs: String,
-  enums: String,
-  defaults: true,
-  oneofs: true,
+    keepCase: true,
+    longs: String,
+    enums: String,
+    defaults: true,
+    oneofs: true,
 });
 
-const grpcObject = grpc.loadPackageDefinition(packageDefinition) as any;
-const LikeService = grpcObject.proto.LikeService;
+const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any;
+const { LikeService } = (protoDescriptor.proto as any);
 
-// In-memory data to simulate a database
+// In-memory storage for likes
 const likes: Array<{ PostId: number; UserId: number }> = [];
 
 // Implement the CreateLike method
 const createLike = (
-  call: grpc.ServerUnaryCall<{ PostId: number }, { PostId: number; UserId: number }>,
-  callback: grpc.sendUnaryData<{ PostId: number; UserId: number }>
+    call: grpc.ServerUnaryCall<{ PostId: number }, any>,
+    callback: grpc.sendUnaryData<{ success: boolean }>
 ) => {
-  const { PostId } = call.request;
-  const UserId = Math.floor(Math.random() * 1000); // Simulated user ID
-  const like = { PostId, UserId };
-  likes.push(like);
-  console.log(`Like created: ${JSON.stringify(like)}`);
-  callback(null, like);
+    try {
+        const { PostId } = call.request;
+        const UserId = Math.floor(Math.random() * 1000); // Simulated user ID
+        
+        likes.push({ PostId, UserId });
+        
+        console.log(`Like created: PostId=${PostId}, UserId=${UserId}`);
+        callback(null, { success: true });
+    } catch (error) {
+        console.error('Error creating like:', error);
+        callback({
+            code: grpc.status.INTERNAL,
+            message: 'Internal error occurred'
+        });
+    }
 };
 
-// Create the gRPC server
-const server = new grpc.Server();
-server.addService(LikeService.service, { CreateLike: createLike });
+async function main() {
+    // Create gRPC server
+    const server = new grpc.Server();
+    
+    // Add the LikeService service implementation to the server
+    server.addService(LikeService.service, {
+        createLike: createLike
+    });
 
-// Start the server
-const PORT = 50051;
-server.bindAsync(`0.0.0.0:${PORT}`, grpc.ServerCredentials.createInsecure(), () => {
-  console.log(`gRPC server is running on http://0.0.0.0:${PORT}`);
-  const registry = new Registry(env('CONSUL_ADDRESS', 'localhost:8500'), 'likes');
-  registry.register();
-  setInterval(() => {
-    registry.healthCheck();
-  }, 10000);
+    // Get configuration from environment
+    const grpcHost = env('GRPC_HOST', 'localhost');
+    const grpcPort = parseInt(env('GRPC_PORT', '2003'), 10);
+
+    // Start the server
+    const serverAddr = `${grpcHost}:${grpcPort}`;
+    server.bindAsync(
+        serverAddr,
+        grpc.ServerCredentials.createInsecure(),
+        async (error) => {
+            if (error) {
+                console.error('Failed to bind server:', error);
+                return;
+            }
+
+            console.log(`GRPC Server running at ${serverAddr}`);
+
+            // Register with Consul
+            const registry = new ConsulRegistry(grpcHost, grpcPort, 'likes');
+            await registry.register();
+
+            function shutdown() {
+                console.log('Shutting down...');
+                registry.deregister();
+                server.forceShutdown();
+                process.exit(0);
+            }
+
+            // Handle graceful shutdown
+            process.on('SIGTERM', shutdown);
+            process.on('SIGINT', shutdown);
+            process.on('SIGQUIT', shutdown);
+            process.on('SIGHUP', shutdown);
+        }
+    );
+}
+
+main().catch(error => {
+    console.error('Failed to start server:', error);
+    process.exit(1);
 });

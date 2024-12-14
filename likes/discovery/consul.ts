@@ -5,21 +5,26 @@ import { env } from "../helpers/app";
 export class ConsulRegistry implements IRegistery {
     private client: Consul;
     private serviceName: string;
-    private address: string;
+    private host: string;
+    private port: number;
     private instanceId: string;
     private healthCheckInterval?: NodeJS.Timeout;
 
-    constructor(address: string, serviceName: string) {
+    constructor(serviceHost: string, servicePort: number, serviceName: string) {
         this.serviceName = serviceName;
-        this.address = address;
         this.instanceId = this.generateInstanceID();
 
-        const [host, portStr] = address.split(':');
-        const port = parseInt(portStr, 10);
+        // Service details
+        this.host = serviceHost;
+        this.port = servicePort;
+
+        // Consul connection details
+        const consulHost = env('CONSUL_HOST', 'localhost');
+        const consulPort = parseInt(env('CONSUL_PORT', '8500'), 10);
 
         this.client = new Consul({
-            host: host,
-            port: port
+            host: consulHost,
+            port: consulPort
         });
     }
 
@@ -28,19 +33,17 @@ export class ConsulRegistry implements IRegistery {
     }
 
     async register(): Promise<void> {
-        const host = env('GRPC_HOST', 'locslhost');
-        const port = parseInt(env('GRPC_PORT', '50051'), 10);
 
         await this.client.agent.service.register({
             id: this.instanceId,
-            address: host,
-            port: port,
+            address: this.host,
+            port: this.port,
             name: this.serviceName,
             check: {
                 name: this.serviceName,
                 checkid: this.instanceId,
                 tlsskipverify: true,
-                ttl: "5000s",
+                ttl: "5s",
                 timeout: "1s",
                 deregistercriticalserviceafter: "10s",
             }
