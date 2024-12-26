@@ -92,3 +92,25 @@ message CreateLikeResponse {
 service LikeService {
   rpc CreateLike(CreateLikeRequest) returns (CreateLikeResponse);
 }
+
+service AuthService {
+    rpc Signup (SignupRequest) returns (AuthResponse);
+    rpc Login (LoginRequest) returns (AuthResponse);
+}
+
+message SignupRequest {
+    string name = 1;
+    string username = 2;
+    string email = 3;
+    string password = 4;
+}
+
+message LoginRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message AuthResponse {
+    string token = 1;  // JWT token
+    string message = 2;
+}
