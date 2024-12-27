@@ -111,6 +111,6 @@ message LoginRequest {
 }
 
 message AuthResponse {
-    string token = 1;  // JWT token
+    string token = 1;
     string message = 2;
 }
