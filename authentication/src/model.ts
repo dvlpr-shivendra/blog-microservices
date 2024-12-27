@@ -30,13 +30,12 @@ const UserSchema = new mongoose.Schema(
 );
 
 UserSchema.pre("save", async function (next) {
+    if (!this.isModified("password")) return next();
     const saltRounds = 10;
     this.password = await bcrypt.hash(this.password, saltRounds);
     next();
 });
 
-
-// Create and export the User model
 const User = mongoose.model("User", UserSchema);
 
 export default User;

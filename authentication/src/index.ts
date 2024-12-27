@@ -5,13 +5,11 @@ import { ConsulRegistry } from './discovery/consul';
 import { env } from './helpers/app';
 import { signup } from './grpc_handler';
 
-
 import 'dotenv/config'
 import mongoose from 'mongoose';
 
-const PROTO_PATH = path.resolve(__dirname, '../common/proto/blog.proto');
+const PROTO_PATH = path.resolve(__dirname, '../../common/proto/blog.proto');
 
-// Load protobuf
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
     keepCase: true,
     longs: String,
