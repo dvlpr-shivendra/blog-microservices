@@ -11,7 +11,6 @@ import mongoose from 'mongoose';
 
 const PROTO_PATH = path.resolve(__dirname, '../common/proto/blog.proto');
 
-// Load protobuf
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
     keepCase: true,
     longs: String,
