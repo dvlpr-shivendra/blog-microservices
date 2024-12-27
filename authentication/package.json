@@ -19,10 +19,12 @@
     "consul": "^2.0.1",
     "dotenv": "^16.4.7",
     "grpc-tools": "^1.12.4",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"

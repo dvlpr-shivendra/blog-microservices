@@ -1,7 +1,12 @@
 import * as grpc from '@grpc/grpc-js';
 import * as service from './service';
 
-export const signup: grpc.handleUnaryCall<UserPayload, { success: boolean }> = async (
+interface Response {
+    token: string,
+    message: string
+}
+
+export const signup: grpc.handleUnaryCall<UserPayload, Response> = async (
     call,
     callback
 ) => {
@@ -13,9 +18,9 @@ export const signup: grpc.handleUnaryCall<UserPayload, { success: boolean }> = a
             password
         } = call.request;
 
-        service.createUser({ name, username, email, password })
+        const token = await service.createUser({ name, username, email, password })
 
-        callback(null, { success: true });
+        callback(null, { token, message: "success" });
     } catch (error) {
         console.error('Error creating like:', error);
         callback({
