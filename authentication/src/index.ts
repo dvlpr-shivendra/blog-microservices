@@ -34,7 +34,7 @@ async function main() {
     });
 
     const grpcHost = env('GRPC_HOST', 'localhost');
-    const grpcPort = parseInt(env('GRPC_PORT', '2004'), 10);
+    const grpcPort = parseInt(env('GRPC_PORT', '2003'), 10);
 
     const serverAddr = `${grpcHost}:${grpcPort}`;
 

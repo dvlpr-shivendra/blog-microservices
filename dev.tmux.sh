@@ -7,7 +7,9 @@ tmux kill-session -t blog-services 2>/dev/null
 tmux new-session -s blog-services -n services -d
 
 tmux split-window -v
+tmux split-window -h
 tmux split-window -v
+tmux split-window -h
 
 # Start consul and wait for 5s
 tmux select-pane -t 0
@@ -15,8 +17,7 @@ tmux send-keys "docker compose up -d consul" C-m
 sleep 2
 
 # Start posts service
-tmux send-keys "cd posts && docker compose up -d" C-m
-sleep 2
+tmux send-keys "cd posts" C-m
 tmux send-keys "air" C-m
 
 # Start gateway
@@ -26,9 +27,18 @@ tmux send-keys "air" C-m
 
 # Start comments
 tmux select-pane -t 2
-tmux send-keys "cd comments && docker compose up -d" C-m
-sleep 2
+tmux send-keys "cd comments" C-m
 tmux send-keys "air" C-m
+
+# Start likes
+tmux select-pane -t 3
+tmux send-keys "cd likes" C-m
+tmux send-keys "npm run watch" C-m
+
+# Start likes
+tmux select-pane -t 4
+tmux send-keys "cd authentication" C-m
+tmux send-keys "npm run watch" C-m
 
 # Set the layout
 tmux select-layout tiled
