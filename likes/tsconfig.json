@@ -1,28 +1,26 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "baseUrl": "./",
-    "outDir": "./dist",
-    "rootDir": "./",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
+    "target": "ES2022", // Use modern ECMAScript features
+    "module": "NodeNext", // Ensures ES module syntax compatibility
+    "moduleResolution": "NodeNext", // Use NodeNext module resolution for ES modules
+    "baseUrl": "./", // Resolve modules from the root of the project
+    "outDir": "./dist", // Output compiled JS to the dist folder
+    "rootDir": "./src", // Keep source files under the root directory
+    "strict": true, // Enable strict type checking
+    "esModuleInterop": true, // Enables interop with CommonJS modules
+    "skipLibCheck": true, // Skip type checking of declaration files
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "paths": {
-      "*": [
-        "node_modules/*",
-        "/"
-      ]
-    }
+    "resolveJsonModule": true, // Enable importing of JSON files
+    "typeRoots": [
+      "node_modules/@types", // Look for types in node_modules/@types
+      "./types" // Also check for custom types in ./types folder
+    ]
   },
   "include": [
-    "**/*.ts"
+    "**/*.ts" // Include all TypeScript files
   ],
   "exclude": [
-    "node_modules",
-    "dist"
+    "node_modules", // Exclude node_modules
+    "dist" // Exclude the dist folder
   ]
 }
