@@ -17,6 +17,7 @@ import (
 
 	_ "github.com/lib/pq"
 
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -31,6 +32,7 @@ var (
 	dbPassword  = common.Env("DB_PASSWORD", "postgres")
 	dbHost      = common.Env("DB_HOST", "localhost")
 	dbPort      = common.Env("DB_PORT", "5432")
+	jaegerAddr  = common.Env("JAEGER_ADDR", "localhost:4318")
 )
 
 func unaryInterceptor(
@@ -74,6 +76,15 @@ func validateToken(token string) bool {
 }
 
 func main() {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
+	zap.ReplaceGlobals(logger)
+
+	if err := common.SetGlobalTracer(context.TODO(), serviceName, jaegerAddr); err != nil {
+		logger.Fatal("could set global tracer", zap.Error(err))
+	}
+
 	registry, err := consul.NewRegistry(consulAddr, serviceName)
 
 	if err != nil {
@@ -91,7 +102,7 @@ func main() {
 	go func() {
 		for {
 			if err := registry.HealthCheck(instanceID, serviceName); err != nil {
-				log.Fatal("failed to health check")
+				logger.Error("failed to health check", zap.Error(err))
 			}
 			time.Sleep(time.Second * 1)
 		}
@@ -106,7 +117,7 @@ func main() {
 	l, err := net.Listen("tcp", grpcAddr)
 
 	if err != nil {
-		panic(err)
+		logger.Fatal("failed to listen", zap.Error(err))
 	}
 
 	defer l.Close()
@@ -123,15 +134,16 @@ func main() {
 	db, err := sql.Open("postgres", connectionString)
 
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal("failed to connect to db", zap.Error(err))
 	}
 
 	store := NewStore(db)
 	svc := NewService(store)
+	svcWithTelemetry := NewTelemetryMiddleware(svc)
+	svcWithLogging := NewLoggingMiddleware(svcWithTelemetry)
+	NewGRPCHandler(grpcServer, svcWithLogging)
 
-	NewGRPCHandler(grpcServer, svc)
-
-	log.Printf("Starting GRPC server at %s", grpcAddr)
+	logger.Info("starting HTTP server", zap.String("port", grpcAddr))
 
 	if err := grpcServer.Serve(l); err != nil {
 		panic(err)
