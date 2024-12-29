@@ -1,12 +1,14 @@
 package main
 
 import (
-	"net/http"
-	"strconv"
-
 	"blog-services/common"
 	"blog-services/common/proto"
 	"blog-services/gateway/gateway"
+	"fmt"
+	"net/http"
+	"strconv"
+
+	"go.opentelemetry.io/otel"
 )
 
 type handler struct {
@@ -28,7 +30,10 @@ func (h *handler) registerRoutes(mux *http.ServeMux) {
 }
 
 func (h *handler) handleGetPosts(w http.ResponseWriter, r *http.Request) {
-	posts, err := h.gateway.GetPosts(r.Context())
+	tr := otel.Tracer("http")
+	ctx, span := tr.Start(r.Context(), fmt.Sprintf("%s %s", r.Method, r.RequestURI))
+	defer span.End()
+	posts, err := h.gateway.GetPosts(ctx)
 	if err != nil {
 		common.WriteJSON(w, http.StatusInternalServerError, err.Error())
 		return
@@ -38,6 +43,10 @@ func (h *handler) handleGetPosts(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 
+	tr := otel.Tracer("http")
+	ctx, span := tr.Start(r.Context(), fmt.Sprintf("%s %s", r.Method, r.RequestURI))
+	defer span.End()
+
 	var body CreatePostRequest
 
 	if err := common.ReadJSON(r, &body); err != nil {
@@ -45,7 +54,7 @@ func (h *handler) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := h.gateway.CreatePost(r.Context(), &proto.CreatePostRequest{
+	post, err := h.gateway.CreatePost(ctx, &proto.CreatePostRequest{
 		Title: body.Title,
 		Body:  body.Body,
 	})
@@ -58,7 +67,9 @@ func (h *handler) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) handleUpdatePost(w http.ResponseWriter, r *http.Request) {
-
+	tr := otel.Tracer("http")
+	ctx, span := tr.Start(r.Context(), fmt.Sprintf("%s %s", r.Method, r.RequestURI))
+	defer span.End()
 	var body UpdatePostRequest
 
 	if err := common.ReadJSON(r, &body); err != nil {
@@ -73,7 +84,7 @@ func (h *handler) handleUpdatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := h.gateway.UpdatePost(r.Context(), &proto.UpdatePostRequest{
+	post, err := h.gateway.UpdatePost(ctx, &proto.UpdatePostRequest{
 		Id:        id,
 		Title:     body.Title,
 		Body:      body.Body,
@@ -89,13 +100,16 @@ func (h *handler) handleUpdatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) handleGetComments(w http.ResponseWriter, r *http.Request) {
+	tr := otel.Tracer("http")
+	ctx, span := tr.Start(r.Context(), fmt.Sprintf("%s %s", r.Method, r.RequestURI))
+	defer span.End()
 	postId, err := strconv.ParseInt(r.PathValue("postId"), 10, 64)
 
 	if err != nil {
 		common.WriteJSON(w, http.StatusInternalServerError, "Something went wrong")
 	}
 
-	comments, err := h.gateway.GetComments(r.Context(), postId)
+	comments, err := h.gateway.GetComments(ctx, postId)
 	if err != nil {
 		common.WriteJSON(w, http.StatusInternalServerError, err.Error())
 		return
@@ -104,13 +118,16 @@ func (h *handler) handleGetComments(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) handleCreateLike(w http.ResponseWriter, r *http.Request) {
+	tr := otel.Tracer("http")
+	ctx, span := tr.Start(r.Context(), fmt.Sprintf("%s %s", r.Method, r.RequestURI))
+	defer span.End()
 	postId, err := strconv.ParseInt(r.PathValue("postId"), 10, 64)
 
 	if err != nil {
 		common.WriteJSON(w, http.StatusInternalServerError, "Something went wrong")
 	}
 
-	comments, err := h.gateway.CreateLike(r.Context(), postId)
+	comments, err := h.gateway.CreateLike(ctx, postId)
 	if err != nil {
 		common.WriteJSON(w, http.StatusInternalServerError, err.Error())
 		return
