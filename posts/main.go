@@ -2,6 +2,7 @@ package main
 
 import (
 	"blog-services/common"
+	"blog-services/common/broker"
 	"blog-services/common/discovery"
 	"blog-services/common/discovery/consul"
 	"context"
@@ -33,6 +34,10 @@ var (
 	dbHost      = common.Env("DB_HOST", "localhost")
 	dbPort      = common.Env("DB_PORT", "5432")
 	jaegerAddr  = common.Env("JAEGER_ADDR", "localhost:4318")
+	amqpUser    = common.Env("RABBITMQ_USER", "guest")
+	amqpPass    = common.Env("RABBITMQ_PASS", "guest")
+	amqpHost    = common.Env("RABBITMQ_HOST", "localhost")
+	amqpPort    = common.Env("RABBITMQ_PORT", "5672")
 )
 
 func unaryInterceptor(
@@ -110,6 +115,12 @@ func main() {
 
 	defer registry.Deregister(ctx, instanceID, serviceName)
 
+	ch, close := broker.Connect(amqpUser, amqpPass, amqpHost, amqpPort)
+	defer func() {
+		close()
+		ch.Close()
+	}()
+
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(unaryInterceptor),
 	)
@@ -142,7 +153,8 @@ func main() {
 	svcWithTelemetry := NewTelemetryMiddleware(svc)
 	svcWithLogging := NewLoggingMiddleware(svcWithTelemetry)
 	NewGRPCHandler(grpcServer, svcWithLogging)
-
+	consumer := NewConsumer(svcWithLogging)
+	consumer.Listen(ch)
 	logger.Info("starting HTTP server", zap.String("port", grpcAddr))
 
 	if err := grpcServer.Serve(l); err != nil {

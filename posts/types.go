@@ -7,13 +7,14 @@ import (
 )
 
 type Post struct {
-	Id        int
-	Title     string
-	Body      string
-	AuthorID  int
-	Published bool
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Id         int
+	Title      string
+	Body       string
+	AuthorId   int
+	Published  bool
+	LikesCount int
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 type PostsService interface {
@@ -21,6 +22,7 @@ type PostsService interface {
 	UpdatePost(context.Context, *proto.UpdatePostRequest) (*proto.Post, error)
 	GetPost(context.Context, *proto.GetPostRequest) (*proto.Post, error)
 	GetPosts(context.Context) ([]*proto.Post, error)
+	IncrementLikeCount(context.Context, string) ([]*proto.Post, error)
 }
 
 type PostsStore interface {

@@ -3,7 +3,8 @@ import { Context, propagation } from "@opentelemetry/api";
 
 const MAX_RETRY_COUNT = 3;
 const DLQ = "dlq_main";
-const DELIVERY_MODE_PERRSISTENT = 2;
+export const DELIVERY_MODE_PERRSISTENT = 2;
+export const POST_LIKED_EVENT = "post.liked";
 
 export async function connect(
   user: string,
@@ -15,7 +16,7 @@ export async function connect(
   const conn = await amqp.connect(address);
   const channel = await conn.createChannel();
 
-  await channel.assertExchange("PostLikedEvent", "fanout", { durable: true });
+  await channel.assertExchange(POST_LIKED_EVENT, "fanout", { durable: true });
 
   return { channel, close: () => conn.close() };
 }
@@ -73,27 +74,4 @@ export function injectAMQPHeaders(ctx: Context): Record<string, string> {
   const carrier: AmqpHeaderCarrier = {};
   propagation.inject(ctx, carrier);
   return carrier;
-}
-
-function extractAMQPHeader(
-  ctx: Context,
-  headers: Record<string, string>
-): Context {
-  return propagation.extract(ctx, headers);
-}
-
-export async function publishLikeCreatedEvent(
-  channel: amqp.Channel,
-  postId: number,
-  userId: number
-) {
-  const message = {
-    type: "LikeCreated",
-    data: { postId, userId },
-  };
-
-  channel.publish("PostLikedEvent", "", Buffer.from(JSON.stringify(message)), {
-    contentType: "application/json",
-    deliveryMode: DELIVERY_MODE_PERRSISTENT,
-  });
 }

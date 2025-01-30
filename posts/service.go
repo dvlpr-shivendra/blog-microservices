@@ -28,3 +28,7 @@ func (s *service) UpdatePost(ctx context.Context, req *proto.UpdatePostRequest) 
 func (s *service) GetPosts(ctx context.Context) ([]*proto.Post, error) {
 	return s.store.GetList(ctx)
 }
+
+func (s *service) IncrementLikeCount(ctx context.Context, postId string) ([]*proto.Post, error) {
+	return nil, nil
+}

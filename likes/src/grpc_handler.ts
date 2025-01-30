@@ -7,17 +7,14 @@ export default class GRPCHandler {
     this.service = service;
   }
 
-  createLike: grpc.handleUnaryCall<{ PostId: number }, { success: boolean }> =
+  createLike: grpc.handleUnaryCall<{ PostId: string }, { success: boolean }> =
     async (call, callback) => {
       try {
-        const { PostId } = call.request;
+        const postId = call.request.PostId;
 
-        const UserId = 1;
+        const userId = "1";
 
-        this.service.createLike({ postId: PostId, userId: UserId });
-
-        console.log(`Like created: PostId=${PostId}, UserId=${UserId}`);
-
+        await this.service.createLike({ postId, userId });
         callback(null, { success: true });
       } catch (error) {
         console.error("Error creating like:", error);

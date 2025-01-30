@@ -1,4 +1,4 @@
 interface LikeData {
-    postId: number,
-    userId: number,
+  postId: string;
+  userId: string;
 }

@@ -41,3 +41,9 @@ func (s *TelemetryMiddleware) GetPosts(ctx context.Context) ([]*proto.Post, erro
 	span.AddEvent("GetPosts invoked")
 	return s.next.GetPosts(ctx)
 }
+
+func (s *TelemetryMiddleware) IncrementLikeCount(ctx context.Context, postId string) ([]*proto.Post, error) {
+	span := trace.SpanFromContext(ctx)
+	span.AddEvent("GetPosts invoked")
+	return s.next.GetPosts(ctx)
+}

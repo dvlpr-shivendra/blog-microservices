@@ -4,9 +4,11 @@ import * as path from "path";
 import { ConsulRegistry } from "./discovery/consul";
 import { env } from "./helpers/app";
 import GRPCHandler from "./grpc_handler";
+import { connect } from "./amqp";
 
 import "dotenv/config";
 import mongoose from "mongoose";
+import { LikeService } from "./service";
 
 const PROTO_PATH = path.resolve(__dirname, "../../common/proto/blog.proto");
 
@@ -19,7 +21,7 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 });
 
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any;
-const { LikeService } = protoDescriptor.proto as any;
+const { LikeService: UnimplementedLikeService } = protoDescriptor.proto as any;
 
 mongoose
   .connect(env("MONGODB_URI", ""))
@@ -27,11 +29,17 @@ mongoose
   .catch((err) => console.error("Failed to connect to DB:", err));
 
 async function main() {
-  const service = new LikeService();
+  const { channel, close } = await connect(
+    "guest",
+    "guest",
+    "localhost",
+    "5672"
+  );
+  const service = new LikeService(channel);
   const grpcHandler = new GRPCHandler(service);
   const server = new grpc.Server();
 
-  server.addService(LikeService.service, {
+  server.addService(UnimplementedLikeService.service, {
     createLike: grpcHandler.createLike,
   });
 
