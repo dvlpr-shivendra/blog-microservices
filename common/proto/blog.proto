@@ -10,8 +10,9 @@ message Post {
   string Body = 3;
   int64 AuthorId = 4;
   bool Published = 5;
-  string CreatedAt = 6;
-  string UpdatedAt = 7;
+  int64 LikesCount = 6;
+  string CreatedAt = 7;
+  string UpdatedAt = 8;
 }
 
 service PostService {
