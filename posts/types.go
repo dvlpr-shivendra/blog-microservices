@@ -7,10 +7,10 @@ import (
 )
 
 type Post struct {
-	Id         int
+	Id         int64
 	Title      string
 	Body       string
-	AuthorId   int
+	AuthorId   int64
 	Published  bool
 	LikesCount int
 	CreatedAt  time.Time
