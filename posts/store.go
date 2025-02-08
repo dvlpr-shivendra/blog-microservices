@@ -70,7 +70,7 @@ func (s *store) Update(ctx context.Context, r *proto.UpdatePostRequest) (*proto.
 	return post, nil
 }
 
-func (s *store) Get(ctx context.Context, id int) (*proto.Post, error) {
+func (s *store) Get(ctx context.Context, id int64) (*proto.Post, error) {
 	post := &proto.Post{}
 	err := s.db.QueryRowContext(ctx, "SELECT id, title, body, author_id, published, created_at, updated_at FROM posts WHERE id = $1", id).Scan(
 		&post.Id,
@@ -110,4 +110,41 @@ func (s *store) GetList(ctx context.Context) ([]*proto.Post, error) {
 		posts = append(posts, post)
 	}
 	return posts, nil
+}
+
+func (s *store) UpdateLikesCount(ctx context.Context, postId int64) (*proto.Post, error) {
+	post := &proto.Post{}
+
+	var currentLikes int64
+	err := s.db.QueryRowContext(ctx, "SELECT likes_count FROM posts WHERE id = $1", postId).Scan(&currentLikes)
+	if err != nil {
+		return nil, err
+	}
+
+	newLikesCount := currentLikes + 1
+
+	query := `
+	UPDATE posts
+	SET 
+		likes_count = $2,
+		updated_at = NOW()
+	WHERE id = $1
+	RETURNING id, title, body, author_id, published, created_at, updated_at, likes_count;
+	`
+	err = s.db.QueryRowContext(ctx, query, postId, newLikesCount).Scan(
+		&post.Id,
+		&post.Title,
+		&post.Body,
+		&post.AuthorId,
+		&post.Published,
+		&post.CreatedAt,
+		&post.UpdatedAt,
+		&post.LikesCount,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return post, nil
 }

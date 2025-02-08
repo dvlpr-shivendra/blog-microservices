@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 
 	"blog-services/common/broker"
 
@@ -58,7 +59,15 @@ func (c *consumer) Listen(ch *amqp.Channel) {
 				continue
 			}
 
-			_, err := c.service.IncrementLikeCount(context.Background(), likeData.PostId)
+			postId, err := strconv.ParseInt(likeData.PostId, 10, 64)
+
+			if err != nil {
+				d.Nack(false, false)
+				log.Printf("Invalid postId: %v", err)
+				continue
+			}
+
+			_, err = c.service.IncrementLikeCount(context.Background(), postId)
 			if err != nil {
 				log.Printf("failed to update post: %v", err)
 

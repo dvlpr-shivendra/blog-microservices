@@ -14,7 +14,7 @@ func NewService(store PostsStore) *service {
 }
 
 func (s *service) GetPost(ctx context.Context, request *proto.GetPostRequest) (*proto.Post, error) {
-	return s.store.Get(ctx, int(request.PostId))
+	return s.store.Get(ctx, request.PostId)
 }
 
 func (s *service) CreatePost(ctx context.Context, req *proto.CreatePostRequest) (*proto.Post, error) {
@@ -29,6 +29,6 @@ func (s *service) GetPosts(ctx context.Context) ([]*proto.Post, error) {
 	return s.store.GetList(ctx)
 }
 
-func (s *service) IncrementLikeCount(ctx context.Context, postId string) ([]*proto.Post, error) {
-	return nil, nil
+func (s *service) IncrementLikeCount(ctx context.Context, postId int64) (*proto.Post, error) {
+	return s.store.UpdateLikesCount(ctx, postId)
 }

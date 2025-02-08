@@ -48,7 +48,7 @@ func (s *LoggingMiddleware) GetPosts(ctx context.Context) ([]*proto.Post, error)
 	}()
 	return s.next.GetPosts(ctx)
 }
-func (s *LoggingMiddleware) IncrementLikeCount(ctx context.Context, postId string) ([]*proto.Post, error) {
+func (s *LoggingMiddleware) IncrementLikeCount(ctx context.Context, postId int64) (*proto.Post, error) {
 	start := time.Now()
 	defer func() {
 		zap.L().Info("GetPosts", zap.Duration("took", time.Since(start)))
