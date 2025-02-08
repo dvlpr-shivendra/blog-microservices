@@ -107,6 +107,7 @@ func (h *handler) handleGetComments(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		common.WriteJSON(w, http.StatusInternalServerError, "Something went wrong")
+		return
 	}
 
 	comments, err := h.gateway.GetComments(ctx, postId)
@@ -125,6 +126,7 @@ func (h *handler) handleCreateLike(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		common.WriteJSON(w, http.StatusInternalServerError, "Something went wrong")
+		return
 	}
 
 	comments, err := h.gateway.CreateLike(ctx, postId)
