@@ -37,11 +37,18 @@ func main() {
 	}
 
 	go func() {
+		ticker := time.NewTicker(10 * time.Second) // Increase interval
+		defer ticker.Stop()
+
 		for {
-			if err := registry.HealthCheck(instanceID, serviceName); err != nil {
-				log.Fatal("failed to health check")
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				if err := registry.HealthCheck(instanceID, serviceName); err != nil {
+					log.Println("Health check failed:", err)
+				}
 			}
-			time.Sleep(time.Second * 1)
 		}
 	}()
 
