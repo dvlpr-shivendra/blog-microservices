@@ -23,6 +23,8 @@ func (g *gateway) CreatePost(ctx context.Context, req *proto.CreatePostRequest) 
 		return nil, err
 	}
 
+	defer conn.Close()
+
 	c := proto.NewPostServiceClient(conn)
 
 	return c.CreatePost(ctx, req)
@@ -35,6 +37,8 @@ func (g *gateway) GetPosts(ctx context.Context) ([]*proto.Post, error) {
 		log.Printf("Failed to dial server: %v", err)
 		return nil, err
 	}
+
+	defer conn.Close()
 
 	c := proto.NewPostServiceClient(conn)
 
@@ -64,6 +68,8 @@ func (g *gateway) UpdatePost(ctx context.Context, req *proto.UpdatePostRequest) 
 		return nil, err
 	}
 
+	defer conn.Close()
+
 	c := proto.NewPostServiceClient(conn)
 
 	return c.UpdatePost(ctx, req)
@@ -77,6 +83,8 @@ func (g *gateway) GetComments(ctx context.Context, postId int64) (*proto.GetComm
 		return nil, err
 	}
 
+	defer conn.Close()
+
 	c := proto.NewCommentServiceClient(conn)
 
 	return c.GetComments(ctx, &proto.GetCommentsRequest{PostId: postId})
@@ -89,6 +97,8 @@ func (g *gateway) CreateLike(ctx context.Context, postId int64) (*proto.CreateLi
 		log.Printf("Failed to dial server: %v", err)
 		return nil, err
 	}
+
+	defer conn.Close()
 
 	c := proto.NewLikeServiceClient(conn)
 
