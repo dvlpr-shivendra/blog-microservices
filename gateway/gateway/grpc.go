@@ -5,14 +5,27 @@ import (
 	"blog-services/common/proto"
 	"context"
 	"log"
+
+	"go.uber.org/zap"
 )
 
 type gateway struct {
-	registry discovery.Registry
+	registry    discovery.Registry
+	postsClient proto.PostServiceClient
+	logger      *zap.Logger
 }
 
-func NewGRPCGateway(registry discovery.Registry) *gateway {
-	return &gateway{registry}
+func NewGRPCGateway(registry discovery.Registry, logger *zap.Logger) *gateway {
+	conn, err := discovery.ServiceConnection(context.Background(), "posts", registry)
+	if err != nil {
+		log.Fatalf("Failed to connect to posts service: %v", err)
+	}
+
+	return &gateway{
+		registry:    registry,
+		postsClient: proto.NewPostServiceClient(conn),
+		logger:      logger,
+	}
 }
 
 func (g *gateway) CreatePost(ctx context.Context, req *proto.CreatePostRequest) (*proto.Post, error) {
@@ -31,26 +44,15 @@ func (g *gateway) CreatePost(ctx context.Context, req *proto.CreatePostRequest) 
 }
 
 func (g *gateway) GetPosts(ctx context.Context) ([]*proto.Post, error) {
-	conn, err := discovery.ServiceConnection(context.Background(), "posts", g.registry)
+	res, err := g.postsClient.GetPosts(ctx, &proto.Empty{})
 
 	if err != nil {
-		log.Printf("Failed to dial server: %v", err)
-		return nil, err
-	}
-
-	defer conn.Close()
-
-	c := proto.NewPostServiceClient(conn)
-
-	res, err := c.GetPosts(ctx, &proto.Empty{})
-
-	if err != nil {
-		log.Printf("Could not get posts: %v", err)
+		g.logger.Warn("Failed to get posts", zap.Error(err))
 		return nil, err
 	}
 
 	if res == nil {
-		return make([]*proto.Post, 0), nil
+		return []*proto.Post{}, nil
 	}
 
 	return res.Posts, nil

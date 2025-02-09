@@ -9,6 +9,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 var (
@@ -19,10 +21,15 @@ var (
 )
 
 func main() {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
+	zap.ReplaceGlobals(logger)
+
 	err := common.SetGlobalTracer(context.TODO(), serviceName, jaegerAddr)
 
 	if err != nil {
-		log.Fatal("failed to set global tracer")
+		logger.Fatal("could set global tracer", zap.Error(err))
 	}
 
 	registry, err := consul.NewRegistry(consulAddr, serviceName)
@@ -55,7 +62,7 @@ func main() {
 	defer registry.Deregister(ctx, instanceID, serviceName)
 	mux := http.NewServeMux()
 
-	postsGateway := gateway.NewGRPCGateway(registry)
+	postsGateway := gateway.NewGRPCGateway(registry, logger)
 
 	handler := NewHandler(postsGateway)
 	handler.registerRoutes(mux)
