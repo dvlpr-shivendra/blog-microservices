@@ -47,7 +47,7 @@ func (g *gateway) GetPosts(ctx context.Context) ([]*proto.Post, error) {
 	res, err := g.postsClient.GetPosts(ctx, &proto.Empty{})
 
 	if err != nil {
-		g.logger.Warn("Failed to get posts", zap.Error(err))
+		g.logger.Error("Failed to get posts", zap.Error(err))
 		return nil, err
 	}
 

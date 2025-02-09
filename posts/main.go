@@ -105,11 +105,19 @@ func main() {
 	}
 
 	go func() {
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+
 		for {
-			if err := registry.HealthCheck(instanceID, serviceName); err != nil {
-				logger.Error("failed to health check", zap.Error(err))
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				if err := registry.HealthCheck(instanceID, serviceName); err != nil {
+					logger.Warn("health check failed", zap.Error(err))
+					time.Sleep(1 * time.Second) // Backoff before retry
+				}
 			}
-			time.Sleep(time.Second * 1)
 		}
 	}()
 
@@ -122,6 +130,7 @@ func main() {
 	}()
 
 	grpcServer := grpc.NewServer(
+		grpc.MaxConcurrentStreams(1000),
 		grpc.UnaryInterceptor(unaryInterceptor),
 	)
 
@@ -147,6 +156,10 @@ func main() {
 	if err != nil {
 		logger.Fatal("failed to connect to db", zap.Error(err))
 	}
+
+	db.SetMaxOpenConns(50)                 // Limit open connections
+	db.SetMaxIdleConns(10)                 // Keep some idle connections
+	db.SetConnMaxLifetime(5 * time.Minute) // Prevent stale connections
 
 	store := NewStore(db)
 	svc := NewService(store)

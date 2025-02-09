@@ -64,7 +64,7 @@ func main() {
 
 	postsGateway := gateway.NewGRPCGateway(registry, logger)
 
-	handler := NewHandler(postsGateway)
+	handler := NewHandler(postsGateway, logger)
 	handler.registerRoutes(mux)
 
 	log.Printf("Starting HTTP server at %s", httpAddr)

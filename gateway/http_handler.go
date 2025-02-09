@@ -9,14 +9,16 @@ import (
 	"strconv"
 
 	"go.opentelemetry.io/otel"
+	"go.uber.org/zap"
 )
 
 type handler struct {
 	gateway gateway.PostsGateway
+	logger  *zap.Logger
 }
 
-func NewHandler(gateway gateway.PostsGateway) *handler {
-	return &handler{gateway}
+func NewHandler(gateway gateway.PostsGateway, logger *zap.Logger) *handler {
+	return &handler{gateway, logger}
 }
 
 func (h *handler) registerRoutes(mux *http.ServeMux) {
@@ -33,11 +35,21 @@ func (h *handler) handleGetPosts(w http.ResponseWriter, r *http.Request) {
 	tr := otel.Tracer("http")
 	ctx, span := tr.Start(r.Context(), fmt.Sprintf("%s %s", r.Method, r.RequestURI))
 	defer span.End()
+
+	// Recover from panics
+	defer func() {
+		if err := recover(); err != nil {
+			h.logger.Error("panic recovered", zap.Any("error", err))
+			common.WriteError(w, http.StatusInternalServerError, "internal server error")
+		}
+	}()
+
 	posts, err := h.gateway.GetPosts(ctx)
 	if err != nil {
-		common.WriteJSON(w, http.StatusInternalServerError, err.Error())
+		common.WriteError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
+
 	common.WriteJSON(w, http.StatusOK, posts)
 }
 
