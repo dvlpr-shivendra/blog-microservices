@@ -3,11 +3,11 @@ package discovery
 import (
 	"context"
 	"fmt"
-	"math/rand"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/resolver"
 )
 
 func clientUnaryInterceptor(
@@ -41,13 +41,21 @@ func ServiceConnection(ctx context.Context, serviceName string, registry Registr
 		return nil, fmt.Errorf("no available instances found for service: %s", serviceName)
 	}
 
-	address := addressList[rand.Intn(len(addressList))]
+	// Create a resolver that will be used by the round-robin balancer
+	resolverScheme := "static"
+	resolverBuilder := resolver.Get(resolverScheme)
+	if resolverBuilder == nil {
+		r := &staticResolver{addresses: addressList}
+		resolver.Register(r)
+	}
 
-	// TODO: grpc.NewClient was taking around 10s to process a request,
-	// grpc.Dial is working as expected, so for now using grpc.Dial
-	// Will revisit it in future
-	conn, err := grpc.Dial(
-		address,
+	// Format the target address using the static scheme
+	target := fmt.Sprintf("%s:///unused", resolverScheme)
+
+	// Create the client connection with round-robin load balancing
+	conn, err := grpc.NewClient(
+		target,
+		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(clientUnaryInterceptor),
 	)
@@ -57,3 +65,29 @@ func ServiceConnection(ctx context.Context, serviceName string, registry Registr
 
 	return conn, nil
 }
+
+// staticResolver implements the resolver.Builder interface
+type staticResolver struct {
+	addresses []string
+}
+
+func (r *staticResolver) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
+	addrs := make([]resolver.Address, len(r.addresses))
+	for i, addr := range r.addresses {
+		addrs[i] = resolver.Address{Addr: addr}
+	}
+	cc.UpdateState(resolver.State{Addresses: addrs})
+	return &nopResolver{cc: cc}, nil
+}
+
+func (r *staticResolver) Scheme() string {
+	return "static"
+}
+
+// nopResolver implements the resolver.Resolver interface
+type nopResolver struct {
+	cc resolver.ClientConn
+}
+
+func (r *nopResolver) ResolveNow(resolver.ResolveNowOptions) {}
+func (r *nopResolver) Close()                                {}
