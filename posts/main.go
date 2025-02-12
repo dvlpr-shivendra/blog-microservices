@@ -157,8 +157,8 @@ func main() {
 		logger.Fatal("failed to connect to db", zap.Error(err))
 	}
 
-	db.SetMaxOpenConns(50)                 // Limit open connections
-	db.SetMaxIdleConns(10)                 // Keep some idle connections
+	db.SetMaxOpenConns(10)                 // Limit open connections
+	db.SetMaxIdleConns(2)                 // Keep some idle connections
 	db.SetConnMaxLifetime(5 * time.Minute) // Prevent stale connections
 
 	store := NewStore(db)
