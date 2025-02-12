@@ -45,9 +45,9 @@ func (r *Registry) Register(ctx context.Context, instanceID, serviceName, hostPo
 		Check: &consul.AgentServiceCheck{
 			CheckID:                        instanceID,
 			TLSSkipVerify:                  true,
-			TTL:                            "5s",
-			Timeout:                        "1s",
-			DeregisterCriticalServiceAfter: "10s",
+			TTL:                            "30s",
+			Timeout:                        "2s",
+			DeregisterCriticalServiceAfter: "1m",
 		},
 	})
 }

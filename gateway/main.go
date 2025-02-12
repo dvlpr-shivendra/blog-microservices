@@ -44,7 +44,7 @@ func main() {
 	}
 
 	go func() {
-		ticker := time.NewTicker(10 * time.Second) // Increase interval
+		ticker := time.NewTicker(15 * time.Second) // Increase interval
 		defer ticker.Stop()
 
 		for {
