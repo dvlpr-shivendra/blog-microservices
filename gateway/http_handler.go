@@ -59,7 +59,6 @@ func (h *handler) handleGetPost(w http.ResponseWriter, r *http.Request) {
 	ctx, span := tr.Start(r.Context(), fmt.Sprintf("%s %s", r.Method, r.RequestURI))
 	defer span.End()
 
-	// Recover from panics
 	defer func() {
 		if err := recover(); err != nil {
 			h.logger.Error("panic recovered", zap.Any("error", err))
@@ -68,8 +67,6 @@ func (h *handler) handleGetPost(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-
-	fmt.Println(id)
 
 	if err != nil {
 		common.WriteError(w, http.StatusBadRequest, err.Error())

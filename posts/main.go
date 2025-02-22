@@ -3,6 +3,7 @@ package main
 import (
 	"blog-services/common"
 	"blog-services/common/broker"
+	"blog-services/common/cache"
 	"blog-services/common/discovery"
 	"blog-services/common/discovery/consul"
 	"context"
@@ -38,6 +39,10 @@ var (
 	amqpPass    = common.Env("RABBITMQ_PASS", "guest")
 	amqpHost    = common.Env("RABBITMQ_HOST", "localhost")
 	amqpPort    = common.Env("RABBITMQ_PORT", "5672")
+	redisAddr     = common.Env("REDIS_ADDR", "localhost:6379")
+	redisPassword = common.Env("REDIS_PASSWORD", "")
+	redisDB       = 0 // Default DB Index
+
 )
 
 func unaryInterceptor(
@@ -157,12 +162,15 @@ func main() {
 		logger.Fatal("failed to connect to db", zap.Error(err))
 	}
 
-	db.SetMaxOpenConns(10)                 // Limit open connections
-	db.SetMaxIdleConns(2)                 // Keep some idle connections
-	db.SetConnMaxLifetime(5 * time.Minute) // Prevent stale connections
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(2)
+	db.SetConnMaxLifetime(5 * time.Minute)
+
+	redisCache := cache.NewRedisCache(redisAddr, redisPassword, redisDB)
+	defer redisCache.Close()
 
 	store := NewStore(db)
-	svc := NewService(store)
+	svc := NewService(store, redisCache)
 	svcWithTelemetry := NewTelemetryMiddleware(svc)
 	svcWithLogging := NewLoggingMiddleware(svcWithTelemetry)
 	NewGRPCHandler(grpcServer, svcWithLogging)
