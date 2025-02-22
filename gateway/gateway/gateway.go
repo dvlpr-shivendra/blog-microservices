@@ -10,7 +10,7 @@ type PostsGateway interface {
 	CreatePost(context.Context, *proto.CreatePostRequest) (*proto.Post, error)
 	UpdatePost(context.Context, *proto.UpdatePostRequest) (*proto.Post, error)
 	GetPosts(context.Context) ([]*proto.Post, error)
-	GetPost(context.Context, int64) (*proto.Post, error)
+	GetPost(context.Context, *proto.GetPostRequest) (*proto.Post, error)
 
 	GetComments(context.Context, int64) (*proto.GetCommentsResponse, error)
 

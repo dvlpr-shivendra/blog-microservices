@@ -58,8 +58,15 @@ func (g *gateway) GetPosts(ctx context.Context) ([]*proto.Post, error) {
 	return res.Posts, nil
 }
 
-func (g *gateway) GetPost(ctx context.Context, id int64) (*proto.Post, error) {
-	return nil, nil
+func (g *gateway) GetPost(ctx context.Context, req *proto.GetPostRequest) (*proto.Post, error) {
+	post, err := g.postsClient.GetPost(ctx, req)
+
+	if err != nil {
+		g.logger.Error("Failed to get posts", zap.Error(err))
+		return nil, err
+	}
+
+	return post, nil
 }
 
 func (g *gateway) UpdatePost(ctx context.Context, req *proto.UpdatePostRequest) (*proto.Post, error) {

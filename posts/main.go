@@ -115,7 +115,7 @@ func main() {
 			case <-ticker.C:
 				if err := registry.HealthCheck(instanceID, serviceName); err != nil {
 					logger.Warn("health check failed", zap.Error(err))
-					time.Sleep(1 * time.Second) // Backoff before retry
+					time.Sleep(5 * time.Second) // Backoff before retry
 				}
 			}
 		}

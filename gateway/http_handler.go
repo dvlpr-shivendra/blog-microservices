@@ -23,6 +23,7 @@ func NewHandler(gateway gateway.PostsGateway, logger *zap.Logger) *handler {
 
 func (h *handler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/posts", h.handleGetPosts)
+	mux.HandleFunc("GET /api/posts/{id}", h.handleGetPost)
 	mux.HandleFunc("POST /api/posts", h.handleCreatePost)
 	mux.HandleFunc("PUT /api/posts/{id}", h.handleUpdatePost)
 
@@ -51,6 +52,40 @@ func (h *handler) handleGetPosts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	common.WriteJSON(w, http.StatusOK, posts)
+}
+
+func (h *handler) handleGetPost(w http.ResponseWriter, r *http.Request) {
+	tr := otel.Tracer("http")
+	ctx, span := tr.Start(r.Context(), fmt.Sprintf("%s %s", r.Method, r.RequestURI))
+	defer span.End()
+
+	// Recover from panics
+	defer func() {
+		if err := recover(); err != nil {
+			h.logger.Error("panic recovered", zap.Any("error", err))
+			common.WriteError(w, http.StatusInternalServerError, "internal server error")
+		}
+	}()
+
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+
+	fmt.Println(id)
+
+	if err != nil {
+		common.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	post, err := h.gateway.GetPost(ctx, &proto.GetPostRequest{
+		PostId: id,
+	})
+
+	if err != nil {
+		common.WriteError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	common.WriteJSON(w, http.StatusOK, post)
 }
 
 func (h *handler) handleCreatePost(w http.ResponseWriter, r *http.Request) {
