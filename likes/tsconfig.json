@@ -17,7 +17,7 @@
     ]
   },
   "include": [
-    "**/*.ts" // Include all TypeScript files
+    "src/**/*.ts" // Include all TypeScript files
   ],
   "exclude": [
     "node_modules", // Exclude node_modules
