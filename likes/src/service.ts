@@ -3,6 +3,7 @@ import * as store from "./store";
 import { POST_LIKED_EVENT, DELIVERY_MODE_PERSISTENT } from "./amqp";
 import { LikeData } from "./types";
 import * as validator from "./validator";
+import logger from "./logger";
 
 export class LikeService {
   private channel: amqp.Channel;
@@ -33,7 +34,7 @@ export class LikeService {
       }
     );
 
-    console.log({ published });
+    logger.info({ published });
 
     return like;
   }

@@ -1,5 +1,6 @@
 import * as amqp from "amqplib";
 import { Context, propagation } from "@opentelemetry/api";
+import logger from "./logger";
 
 const MAX_RETRY_COUNT = 3;
 const DLQ = "dlq_main";
@@ -32,12 +33,12 @@ export async function handleRetry(
   retryCount++;
   headers["x-retry-count"] = retryCount;
 
-  console.log(
+  logger.info(
     `Retrying message ${msg.content.toString()}, retry count: ${retryCount}`
   );
 
   if (retryCount >= MAX_RETRY_COUNT) {
-    console.log(`Moving message to DLQ ${DLQ}`);
+    logger.info(`Moving message to DLQ ${DLQ}`);
 
     ch.sendToQueue(DLQ, msg.content, {
       headers,

@@ -9,6 +9,7 @@ import { db } from "./db"; // Import the database manager
 
 import "dotenv/config";
 import { LikeService } from "./service";
+import logger from "./logger";
 
 const PROTO_PATH = path.resolve(__dirname, "../../common/proto/blog.proto");
 
@@ -52,20 +53,20 @@ async function main() {
       grpc.ServerCredentials.createInsecure(),
       async (error) => {
         if (error) {
-          console.error("Failed to bind server:", error);
+          logger.error("Failed to bind server:", error);
           return;
         }
 
-        console.log(`GRPC Server running at ${serverAddr}`);
+        logger.info(`GRPC Server running at ${serverAddr}`);
 
         const registry = new ConsulRegistry(grpcHost, grpcPort, "likes");
         await registry.register();
 
         function shutdown() {
-          console.log("Shutting down...");
+          logger.info("Shutting down...");
           registry.deregister();
           server.forceShutdown();
-          db.disconnect().catch(console.error); // Close DB connection properly
+          db.disconnect().catch(logger.error); // Close DB connection properly
           process.exit(0);
         }
 
@@ -76,12 +77,12 @@ async function main() {
       }
     );
   } catch (error) {
-    console.error("Failed to start server:", error);
+    logger.error("Failed to start server:", error);
     process.exit(1);
   }
 }
 
 main().catch((error) => {
-  console.error("Failed to start server:", error);
+  logger.error("Failed to start server:", error);
   process.exit(1);
 });

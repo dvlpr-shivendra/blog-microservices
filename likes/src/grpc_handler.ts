@@ -1,5 +1,6 @@
 import * as grpc from "@grpc/grpc-js";
 import { LikeService } from "./service";
+import logger from "./logger";
 
 export default class GRPCHandler {
   private service: LikeService;
@@ -17,7 +18,7 @@ export default class GRPCHandler {
         await this.service.createLike({ postId, userId });
         callback(null, { success: true });
       } catch (error) {
-        console.error("Error creating like:", error);
+        logger.error("Error creating like:", error);
 
         callback({
           code: grpc.status.INTERNAL,
