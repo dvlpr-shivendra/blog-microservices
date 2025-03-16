@@ -1,24 +1,26 @@
-// Import mongoose
-import mongoose from "mongoose";
+import mongoose, { Document, Schema, Model } from "mongoose";
 
-// Define the Task schema
-const LikeSchema = new mongoose.Schema(
-    {
-        userId: {
-            type: Number,
-            required: true,
-        },
-        postId: {
-            type: Number,
-            required: true,
-        },
-    },
-    {
-        timestamps: true,  // Add createdAt and updatedAt fields
-    }
+// Define the Like interface for TypeScript
+export interface LikeDocument extends Document {
+  userId: number;
+  postId: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Define the Like schema
+const LikeSchema = new Schema<LikeDocument>(
+  {
+    userId: { type: Number, required: true },
+    postId: { type: Number, required: true },
+  },
+  { timestamps: true } // Adds createdAt and updatedAt fields
 );
 
 // Create and export the Like model
-const Like = mongoose.model("Like", LikeSchema);
+const Like: Model<LikeDocument> = mongoose.model<LikeDocument>(
+  "Like",
+  LikeSchema
+);
 
 export default Like;

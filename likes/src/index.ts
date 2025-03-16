@@ -11,6 +11,7 @@ import "dotenv/config";
 import { LikeService } from "./service";
 import logger from "./logger";
 import { MongoRepository } from "./mongo.repository";
+import Like from "./model";
 
 const PROTO_PATH = path.resolve(__dirname, "../../common/proto/blog.proto");
 
@@ -36,8 +37,8 @@ async function main() {
       "localhost",
       "5672"
     );
-    
-    const repository = new MongoRepository();
+
+    const repository = new MongoRepository(Like);
     const service = new LikeService(channel, repository);
     const grpcHandler = new GRPCHandler(service);
     const server = new grpc.Server();
