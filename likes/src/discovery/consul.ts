@@ -1,5 +1,5 @@
 import Consul from "consul";
-import { IRegistery } from "./iRegistery";
+import { IRegistery } from "./IRegistery";
 import { env } from "../helpers/app";
 
 export class ConsulRegistry implements IRegistery {
