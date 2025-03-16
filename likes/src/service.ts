@@ -1,6 +1,6 @@
 import * as amqp from "amqplib";
 import * as store from "./store";
-import { POST_LIKED_EVENT, DELIVERY_MODE_PERRSISTENT } from "./amqp";
+import { POST_LIKED_EVENT, DELIVERY_MODE_PERSISTENT } from "./amqp";
 import { LikeData } from "./types";
 import * as validator from "./validator";
 
@@ -16,11 +16,11 @@ export class LikeService {
     if (!validator.isValidPostId(data.postId)) {
       throw new Error("Invalid postId format");
     }
-    
+
     if (!validator.isValidUserId(data.userId)) {
       throw new Error("Invalid userId format");
     }
-    
+
     const like = await store.save(data);
 
     const published = this.channel.publish(
@@ -29,7 +29,7 @@ export class LikeService {
       Buffer.from(JSON.stringify(data)),
       {
         contentType: "application/json",
-        deliveryMode: DELIVERY_MODE_PERRSISTENT,
+        deliveryMode: DELIVERY_MODE_PERSISTENT,
       }
     );
 

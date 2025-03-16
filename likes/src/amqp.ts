@@ -3,7 +3,7 @@ import { Context, propagation } from "@opentelemetry/api";
 
 const MAX_RETRY_COUNT = 3;
 const DLQ = "dlq_main";
-export const DELIVERY_MODE_PERRSISTENT = 2;
+export const DELIVERY_MODE_PERSISTENT = 2;
 export const POST_LIKED_EVENT = "post.liked";
 
 export async function connect(
@@ -42,7 +42,7 @@ export async function handleRetry(
     ch.sendToQueue(DLQ, msg.content, {
       headers,
       contentType: "application/json",
-      deliveryMode: DELIVERY_MODE_PERRSISTENT,
+      deliveryMode: DELIVERY_MODE_PERSISTENT,
     });
     return;
   }
@@ -52,7 +52,7 @@ export async function handleRetry(
   ch.publish(msg.fields.exchange, msg.fields.routingKey, msg.content, {
     headers,
     contentType: "application/json",
-    deliveryMode: DELIVERY_MODE_PERRSISTENT,
+    deliveryMode: DELIVERY_MODE_PERSISTENT,
   });
 }
 
