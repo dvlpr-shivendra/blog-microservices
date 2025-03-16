@@ -5,11 +5,12 @@ import { ConsulRegistry } from "./discovery/consul";
 import { env } from "./helpers/app";
 import GRPCHandler from "./grpc_handler";
 import { connect } from "./amqp";
-import { db } from "./db"; // Import the database manager
+import { db } from "./db";
 
 import "dotenv/config";
 import { LikeService } from "./service";
 import logger from "./logger";
+import { MongoRepository } from "./mongo.repository";
 
 const PROTO_PATH = path.resolve(__dirname, "../../common/proto/blog.proto");
 
@@ -35,7 +36,9 @@ async function main() {
       "localhost",
       "5672"
     );
-    const service = new LikeService(channel);
+    
+    const repository = new MongoRepository();
+    const service = new LikeService(channel, repository);
     const grpcHandler = new GRPCHandler(service);
     const server = new grpc.Server();
 
@@ -66,7 +69,7 @@ async function main() {
           logger.info("Shutting down...");
           registry.deregister();
           server.forceShutdown();
-          db.disconnect().catch(logger.error); // Close DB connection properly
+          db.disconnect().catch(logger.error);
           process.exit(0);
         }
 

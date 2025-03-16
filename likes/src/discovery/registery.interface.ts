@@ -1,7 +1,7 @@
-interface IRegistery {
+interface Registery {
     register(): Promise<void>;
     deregister(): Promise<void>;
     healthCheck(): Promise<void>;
 }
 
-export { IRegistery };
+export { Registery };

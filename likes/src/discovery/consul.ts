@@ -1,9 +1,9 @@
 import Consul from "consul";
-import { IRegistery } from "./IRegistery";
+import { Registery } from "./registery.interface";
 import { env } from "../helpers/app";
 import logger from "../logger";
 
-export class ConsulRegistry implements IRegistery {
+export class ConsulRegistry implements Registery {
   private client: Consul;
   private serviceName: string;
   private host: string;
