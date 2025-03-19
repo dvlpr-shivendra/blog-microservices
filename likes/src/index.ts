@@ -1,3 +1,4 @@
+import "./instrumentation"; // Adjust the path if needed
 import * as grpc from "@grpc/grpc-js";
 import * as protoLoader from "@grpc/proto-loader";
 import * as path from "path";
@@ -28,7 +29,6 @@ const { LikeService: UnimplementedLikeService } = protoDescriptor.proto as any;
 
 async function main() {
   try {
-    // Connect to MongoDB with connection pooling
     await db.connect();
 
     const { channel, close } = await connect(
