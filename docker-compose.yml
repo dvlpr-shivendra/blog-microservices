@@ -4,14 +4,56 @@ services:
     ports:
       - "16686:16686"
       - "4318:4318"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - app-network
+
   consul:
     image: hashicorp/consul
     command: agent -server -ui -node=server-1 -bootstrap-expect=1 -client=0.0.0.0
     ports:
       - 8500:8500
       - 8600:8600/udp
+    networks:
+      - app-network
+
   rabbitmq:
     image: rabbitmq:3-management
     ports:
       - 15672:15672
       - 5672:5672
+    networks:
+      - app-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - app-network
+    depends_on:
+      - prometheus
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  grafana-storage:
