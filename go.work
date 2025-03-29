@@ -1,7 +1,6 @@
 go 1.22.9
 
 use (
-	./comments
 	./common
 	./gateway
 	./posts
