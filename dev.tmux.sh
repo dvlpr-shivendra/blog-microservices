@@ -35,7 +35,7 @@ tmux select-pane -t 3
 tmux send-keys "cd likes" C-m
 tmux send-keys "npm run watch" C-m
 
-# Start likes
+# Start authentication
 tmux select-pane -t 4
 tmux send-keys "cd authentication" C-m
 tmux send-keys "npm run watch" C-m
