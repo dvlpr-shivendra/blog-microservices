@@ -33,7 +33,7 @@ tmux send-keys "air" C-m
 # Start likes
 tmux select-pane -t 3
 tmux send-keys "cd likes" C-m
-tmux send-keys "npm run watch" C-m
+tmux send-keys "npm run dev" C-m
 
 # Start authentication
 tmux select-pane -t 4
